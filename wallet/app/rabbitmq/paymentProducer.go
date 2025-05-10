@@ -1,9 +1,11 @@
 package rabbitmq
 
 import (
+	"encoding/json"
 	"log"
 	"os"
 
+	"github.com/coroo/go-starter/app/entity"
 	"github.com/streadway/amqp"
 )
 
@@ -43,21 +45,27 @@ func NewPaymentProducer() (*PaymentProducer, error) {
 	}, nil
 }
 
-func (p *PaymentProducer) PublishPayment(payment string) error {
-	err := p.channel.Publish(
+func (p *PaymentProducer) PublishPayment(request entity.WalletRechargeRequest) error {
+
+	requestString, err := json.Marshal(request)
+	if err != nil {
+		return err
+	}
+
+	err = p.channel.Publish(
 		"",
 		p.queue.Name,
 		false,
 		false,
 		amqp.Publishing{
 			ContentType: "text/plain",
-			Body:        []byte(payment),
+			Body:        []byte(requestString),
 		},
 	)
 	if err != nil {
 		return err
 	}
-	log.Printf("Payment message sent: %s", payment)
+	log.Printf("Payment message sent: %s", requestString)
 	return nil
 }
 

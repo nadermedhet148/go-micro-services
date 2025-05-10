@@ -5,11 +5,11 @@
     "version": "0.2.0",
     "configurations": [
        {
-        "name": "Go booking !",
+        "name": "Go wallet !",
         "type": "go",
         "request": "launch",
         "mode": "debug",
-        "program": "${workspaceFolder}/booking/main.go",
+        "program": "${workspaceFolder}/wallet/main.go",
        },
        {
         "name": "Go notification !",
