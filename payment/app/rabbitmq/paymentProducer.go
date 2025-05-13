@@ -1,9 +1,11 @@
 package rabbitmq
 
 import (
+	"encoding/json"
 	"log"
 	"os"
 
+	"github.com/coroo/go-starter/app/entity"
 	"github.com/streadway/amqp"
 )
 
@@ -43,21 +45,27 @@ func NewNotificationProducer() (*NotificationProducer, error) {
 	}, nil
 }
 
-func (p *NotificationProducer) PublishNotification(Notification string) error {
-	err := p.channel.Publish(
+func (p *NotificationProducer) PublishNotification(request entity.WalletRechargeRequest) error {
+
+	requestString, err := json.Marshal(request)
+	if err != nil {
+		return err
+	}
+
+	err = p.channel.Publish(
 		"",
 		p.queue.Name,
 		false,
 		false,
 		amqp.Publishing{
 			ContentType: "text/plain",
-			Body:        []byte(Notification),
+			Body:        []byte(requestString),
 		},
 	)
 	if err != nil {
 		return err
 	}
-	log.Printf("Notification message sent: %s", Notification)
+	log.Printf("Notification message sent: %s", requestString)
 	return nil
 }
 

@@ -1,21 +1,21 @@
 version: '3.4'
 
 services:
-  mysql:
-    image: mysql:8.0
-    restart: always
-    environment:
-      MYSQL_DATABASE: 'booking'
-      MYSQL_ROOT_USER: 'root'
-      MYSQL_PASSWORD: 'root'
-      MYSQL_ROOT_PASSWORD: 'root'
-      MYSQL_TCP_PORT: 3100
-    ports:
-      - "3100:3100"
-    expose:
-      - 3100
-    volumes:
-      - db_data:/var/lib/mysql
+  # mysql:
+  #   image: mysql:8.0
+  #   restart: always
+  #   environment:
+  #     MYSQL_DATABASE: 'booking'
+  #     MYSQL_ROOT_USER: 'root'
+  #     MYSQL_PASSWORD: 'root'
+  #     MYSQL_ROOT_PASSWORD: 'root'
+  #     MYSQL_TCP_PORT: 3100
+  #   ports:
+  #     - "3100:3100"
+  #   expose:
+  #     - 3100
+  #   volumes:
+  #     - db_data:/var/lib/mysql
   redis:                                                                          
     image: redis
     ports:
@@ -36,31 +36,31 @@ services:
       RABBITMQ_DEFAULT_VHOST: '/'
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
-  booking1:
-    image: booking
-    environment:
-      DB_HOST: 'mysql'
-      REDIS_HOST: 'redis:6379'
-    ports:
-      - "8081:8080" 
-    expose:
-      - 8081
-  booking2:
-    image: booking
-    environment:
-      DB_HOST: 'mysql'
-      REDIS_HOST: 'redis:6379'
-    ports:
-      - "8082:8080" 
-  loadbalancer:
-    image: booking-lb
-    depends_on:
-      - booking1
-      - booking2
-    ports:
-      - "8001:80"
-    expose:
-      - 8001
+  # booking1:
+  #   image: booking
+  #   environment:
+  #     DB_HOST: 'mysql'
+  #     REDIS_HOST: 'redis:6379'
+  #   ports:
+  #     - "8081:8080" 
+  #   expose:
+  #     - 8081
+  # booking2:
+  #   image: booking
+  #   environment:
+  #     DB_HOST: 'mysql'
+  #     REDIS_HOST: 'redis:6379'
+  #   ports:
+  #     - "8082:8080" 
+  # loadbalancer:
+  #   image: booking-lb
+  #   depends_on:
+  #     - booking1
+  #     - booking2
+  #   ports:
+  #     - "8001:80"
+  #   expose:
+  #     - 8001
 volumes:
   db_data:
   rabbitmq_data:
