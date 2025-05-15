@@ -11,7 +11,7 @@ import (
 
 type TransactionService interface {
 	CerateRechargeTransaction(Transaction entity.WalletRechargeRequest) (int, error)
-	updateTransaction(Transaction entity.TransactionUpdateRequest) error
+	UpdateTransaction(Transaction entity.TransactionUpdateRequest) error
 }
 
 type transactionService struct {
@@ -40,7 +40,7 @@ func (service *transactionService) CerateRechargeTransaction(req entity.WalletRe
 	// TBD: send to notification
 	return id, nil
 }
-func (service *transactionService) updateTransaction(req entity.TransactionUpdateRequest) error {
+func (service *transactionService) UpdateTransaction(req entity.TransactionUpdateRequest) error {
 	Transaction := service.repositories.GetByRefNumber(req.REF_NUMBER)
 	if Transaction.ID == 0 {
 		return errors.New("transaction not found")

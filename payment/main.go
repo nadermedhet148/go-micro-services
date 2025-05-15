@@ -1,16 +1,17 @@
 package main
 
 import (
+	"github.com/coroo/go-starter/app/rabbitmq"
 	"github.com/coroo/go-starter/routes"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/joho/godotenv/autoload"
 )
 
 func main() {
-	consumer, err := rabbitMq
+	consumer, err := rabbitmq.NewPaymentConsumer()
 	if err != nil {
 		panic(err)
 	}
-	go consumer.ConsumePaymentStatusEvents()
+	go consumer.ConsumePaymentEvents()
 	routes.Api()
 }
