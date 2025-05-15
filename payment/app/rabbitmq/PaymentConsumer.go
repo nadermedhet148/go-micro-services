@@ -29,7 +29,7 @@ func NewPaymentConsumer() (*PaymentConsumer, error) {
 	}
 
 	q, err := ch.QueueDeclare(
-		os.Getenv("PAYMENT_STATUS_QUEUE"),
+		os.Getenv("PAYMENT_QUEUE"),
 		true,
 		false,
 		false,
@@ -66,7 +66,7 @@ func (c *PaymentConsumer) ConsumePaymentEvents() error {
 
 	go func() {
 		for d := range msgs {
-			log.Printf("Received a notifcation message: %s", d.Body)
+			log.Printf("Received a payment message: %s", d.Body)
 			var trxRequest entity.WalletRechargeRequest
 			err := json.Unmarshal(d.Body, &trxRequest)
 			if err != nil {

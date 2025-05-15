@@ -7,10 +7,10 @@ import (
 )
 
 func main() {
-	// consumer, err := rabbitmq.NewPaymentStatusConsumer()
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// go consumer.ConsumePaymentStatusEvents()
+	consumer, err := rabbitMq
+	if err != nil {
+		panic(err)
+	}
+	go consumer.ConsumePaymentStatusEvents()
 	routes.Api()
 }
