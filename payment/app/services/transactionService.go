@@ -37,6 +37,7 @@ func (service *transactionService) CerateRechargeTransaction(req entity.WalletRe
 	if err != nil {
 		return 0, err
 	}
+	// TBD: send to notification
 	return id, nil
 }
 func (service *transactionService) updateTransaction(req entity.TransactionUpdateRequest) error {
