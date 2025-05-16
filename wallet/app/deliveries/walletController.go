@@ -9,8 +9,8 @@ import (
 )
 
 type WalletController interface {
-	GetWallet(ctx *gin.Context)
-	Save(ctx *gin.Context) error
+	CreateWallet(ctx *gin.Context)
+	RechargeWallet(ctx *gin.Context) error
 }
 
 type walletController struct {
@@ -24,6 +24,7 @@ func NewWalletController(router *gin.Engine, apiPrefix string, WalletService ser
 	Group := router.Group(apiPrefix + "wallets")
 	{
 		Group.POST("", handler.CreateWallet)
+		Group.POST("/recharge", handler.RechargeWallet)
 	}
 }
 
