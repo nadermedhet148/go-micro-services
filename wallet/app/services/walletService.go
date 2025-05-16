@@ -34,7 +34,7 @@ func (service *walletService) CerateWallet(wallet entity.Wallet) (int, error) {
 	return id, nil
 }
 func (service *walletService) RechargeWallet(req entity.WalletRechargeRequest) error {
-	wallet := service.repositories.Get(req.WalletID)
+	wallet := service.repositories.Get(req.WALLET_ID)
 	if wallet.ID == 0 {
 		return errors.New("wallet not found")
 	}

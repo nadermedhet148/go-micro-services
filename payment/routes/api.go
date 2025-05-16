@@ -4,7 +4,6 @@ import (
 	"os"
 
 	"github.com/coroo/go-starter/app/deliveries"
-	"github.com/coroo/go-starter/app/rabbitmq"
 	"github.com/coroo/go-starter/app/repositories"
 	"github.com/coroo/go-starter/app/services"
 	"github.com/gin-gonic/gin"
@@ -20,16 +19,12 @@ func Api() {
 			"message": os.Getenv("MAIN_DESCRIPTION"),
 		})
 	})
-	PaymentProducer, err := rabbitmq.NewPaymentProducer()
-	if err != nil {
-		panic("Failed to initialize PaymentProducer: " + err.Error())
-	}
 	var (
-		WalletRepository = repositories.NewWalletRepository()
+		TransactionRepository = repositories.NewTransactionRepository()
 
-		WalletService = services.NewWalletService(WalletRepository, PaymentProducer)
+		transactionService = services.NewTransactionService(TransactionRepository)
 	)
-	deliveries.NewWalletController(router, API_PREFIX, WalletService)
+	deliveries.NewTransactionsController(router, API_PREFIX, transactionService)
 
 	router.Run(":" + os.Getenv("MAIN_PORT"))
 }
