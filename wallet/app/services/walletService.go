@@ -27,14 +27,14 @@ func NewWalletService(repository repositories.WalletRepository, paymentProducer 
 }
 
 func (service *walletService) CerateWallet(wallet entity.Wallet) (int, error) {
-	id, err := service.repositories.Save(wallet)
+	id, err := service.repositories.Save(wallet.Region, wallet)
 	if err != nil {
 		return 0, err
 	}
 	return id, nil
 }
 func (service *walletService) RechargeWallet(req entity.WalletRechargeRequest) error {
-	wallet := service.repositories.Get(req.WALLET_ID)
+	wallet := service.repositories.Get(req.Region, req.WALLET_ID)
 	if wallet.ID == 0 {
 		return errors.New("wallet not found")
 	}

@@ -11,59 +11,69 @@ import (
 )
 
 type WalletRepository interface {
-	Save(wallet entity.Wallet) (int, error)
-	Update(wallet entity.Wallet) error
-	Delete(wallet entity.Wallet) error
-	Get(id int) entity.Wallet
+	Save(key string, wallet entity.Wallet) (int, error)
+	Update(key string, wallet entity.Wallet) error
+	Delete(key string, wallet entity.Wallet) error
+	Get(key string, id int) entity.Wallet
 }
 
 type WalletDatabase struct {
-	connection *gorm.DB
 }
 
 func NewWalletRepository() WalletRepository {
-	db, err := config.ConnectDB()
+	return &WalletDatabase{}
+}
+
+func getDBConnection(key string) *gorm.DB {
+	db, err := config.GetDBForKey(key)
 	if err != nil {
 		panic("Failed to connect database")
 	}
 	db.AutoMigrate(&entity.Wallet{})
-
-	return &WalletDatabase{
-		connection: db,
-	}
+	return db
 }
 
-func (db *WalletDatabase) Save(Wallet entity.Wallet) (int, error) {
+func (db *WalletDatabase) Save(key string, Wallet entity.Wallet) (int, error) {
+	conn := getDBConnection(key)
+
 	data := &Wallet
 	data.CreatedAt = time.Now()
 	data.UpdatedAt = time.Now()
-	err := db.connection.Create(data)
+	err := conn.Create(data)
 	if err.Error != nil {
 		return 0, err.Error
 	}
 	return data.ID, nil
 }
 
-func (db *WalletDatabase) Update(Wallet entity.Wallet) error {
+func (db *WalletDatabase) Update(key string, Wallet entity.Wallet) error {
+	conn := getDBConnection(key)
+
 	data := &Wallet
 	data.UpdatedAt = time.Now()
-	err := db.connection.Save(data)
+	err := conn.Save(data)
 	if err.Error != nil {
 		return err.Error
 	}
 	return nil
 }
-func (db *WalletDatabase) Delete(Wallet entity.Wallet) error {
+
+func (db *WalletDatabase) Delete(key string, Wallet entity.Wallet) error {
+	conn := getDBConnection(key)
+
 	data := &Wallet
-	err := db.connection.Delete(data)
+	err := conn.Delete(data)
 	if err.Error != nil {
 		return err.Error
 	}
 	return nil
 }
-func (db *WalletDatabase) Get(id int) entity.Wallet {
+
+func (db *WalletDatabase) Get(key string, id int) entity.Wallet {
+	conn := getDBConnection(key)
+
 	var Wallet entity.Wallet
-	err := db.connection.Where("id = ?", id).First(&Wallet)
+	err := conn.Where("id = ?", id).First(&Wallet)
 	if err.Error != nil {
 		return Wallet
 	}
