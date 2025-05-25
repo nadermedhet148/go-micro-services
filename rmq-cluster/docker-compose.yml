@@ -18,6 +18,8 @@ services:
       - CLUSTERED=true
       - CLUSTER_WITH=rabbit1
       - RAM_NODE=true
+      - RABBITMQ_DEFAULT_USER=rabbitmq
+      - RABBITMQ_DEFAULT_PASS=rabbitmq
     ports:
       - "5673:5672"
       - "15673:15672"
@@ -30,5 +32,19 @@ services:
     environment:
       - CLUSTERED=true
       - CLUSTER_WITH=rabbit1
+      - RABBITMQ_DEFAULT_USER=rabbitmq
+      - RABBITMQ_DEFAULT_PASS=rabbitmq
     ports:
       - "5674:5672"
+      - "15674:15672"
+  haproxy:
+    image: haproxy:2.4
+    ports:
+      - "80:80"
+      - "5675:5675"
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
+    depends_on:
+      - rabbit1
+      - rabbit2
+      - rabbit3

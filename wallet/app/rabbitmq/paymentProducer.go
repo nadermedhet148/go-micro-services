@@ -28,11 +28,13 @@ func NewPaymentProducer() (*PaymentProducer, error) {
 
 	q, err := ch.QueueDeclare(
 		os.Getenv("PAYMENT_QUEUE"),
-		true,
-		false,
-		false,
-		false,
-		nil,
+		true,  // durable
+		false, // autoDelete
+		false, // exclusive
+		false, // noWait
+		amqp.Table{
+			"x-queue-type": "quorum",
+		},
 	)
 	if err != nil {
 		return nil, err

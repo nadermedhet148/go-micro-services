@@ -22,22 +22,39 @@ services:
       - "6379:6379" 
     expose:
       - '6379'
-  # booking1:
-  #   image: booking
-  #   environment:
-  #     DB_HOST: 'mysql'
-  #     REDIS_HOST: 'redis:6379'
-  #   ports:
-  #     - "8081:8080" 
-  #   expose:
-  #     - 8081
-  # booking2:
-  #   image: booking
-  #   environment:
-  #     DB_HOST: 'mysql'
-  #     REDIS_HOST: 'redis:6379'
-  #   ports:
-  #     - "8082:8080" 
+  payment:
+    image: payment:latest
+    network_mode: host
+    depends_on:
+      - mysql
+    environment:
+      REDIS_HOST: 'redis:6379'
+      MAIN_PORT: '8082'
+
+    # ports:
+    #   - "8081:8080" 
+    # expose:
+    #   - 8081
+  payment2:
+    image: payment:latest
+    network_mode: host
+    depends_on:
+      - mysql
+    environment:
+      REDIS_HOST: 'redis:6379'
+      MAIN_PORT: '8081'
+    ports:
+      - "8082:8080" 
+  payment3:
+    image: payment:latest
+    network_mode: host
+    depends_on:
+      - mysql
+    environment:
+      REDIS_HOST: 'redis:6379'
+      MAIN_PORT: '8084'
+    ports:
+      - "8084:8080" 
   # loadbalancer:
   #   image: booking-lb
   #   depends_on:
