@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/coroo/go-starter/app/entity"
+	"github.com/coroo/go-starter/app/kafka"
 	"github.com/coroo/go-starter/app/repositories"
 	"github.com/coroo/go-starter/app/services"
 	"github.com/streadway/amqp"
@@ -72,7 +73,8 @@ func (c *PaymentConsumer) ConsumePaymentEvents() error {
 		return err
 	}
 	transactionRepo := repositories.NewTransactionRepository()
-	transactionService := services.NewTransactionService(transactionRepo)
+	eventProducer, err := kafka.NewPaymentEventProducer()
+	transactionService := services.NewTransactionService(transactionRepo, eventProducer)
 	consumerChan := make(chan bool)
 
 	workerCount := 20 // or set to your desired parallelism, should not exceed prefetch count

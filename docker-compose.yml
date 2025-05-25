@@ -37,6 +37,41 @@ services:
       - "6379:6379" 
     expose:
       - '6379'
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - 22181:2181
+  
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper
+    ports:
+      - 29092:29092
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka1:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+  kafdrop:
+    image: obsidiandynamics/kafdrop:latest
+    depends_on:
+      - kafka1
+    ports:
+      - 9000:9000
+    environment:
+      KAFKA_BROKER_CONNECT: kafka:9092
+  clickhouse:
+    image: docker.io/bitnami/clickhouse:25
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - '8123:8123'
+    volumes:
+      - clickhouse_data:/bitnami/clickhouse
   # payment:
   #   image: payment:latest
   #   network_mode: host
@@ -82,3 +117,4 @@ services:
 volumes:
   db_data:
   db_data2:
+  clickhouse_data:
