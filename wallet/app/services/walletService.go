@@ -39,6 +39,7 @@ func (service *walletService) RechargeWallet(req entity.WalletRechargeRequest) e
 		return errors.New("wallet not found")
 	}
 
+	req.Region = wallet.Region
 	err := service.paymentProducer.PublishPayment(req)
 
 	return err

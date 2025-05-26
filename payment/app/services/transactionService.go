@@ -49,7 +49,17 @@ func (service *transactionService) CerateRechargeTransaction(req entity.WalletRe
 	if err != nil {
 		return 0, err
 	}
-	// TBD: send to notification
+	event := kafka.PaymentEvent{
+		WALLET_ID: Transaction.WALLET_ID,
+		AMOUNT:    Transaction.AMOUNT,
+		STATUS:    "pending",
+		TYPE:      Transaction.TYPE,
+	}
+	eventBytes, err := json.Marshal(event)
+	if err != nil {
+		return 0, err
+	}
+	service.paymentEventProducer.PushToTopicWithPartition(eventBytes)
 	return id, nil
 }
 func (service *transactionService) UpdateTransaction(req entity.TransactionUpdateRequest) error {

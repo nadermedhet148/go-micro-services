@@ -51,15 +51,17 @@ services:
       - zookeeper
     ports:
       - 29092:29092
+      - 9092:9092
     environment:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka1:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
   kafdrop:
     image: obsidiandynamics/kafdrop:latest
     depends_on:
-      - kafka1
+      - kafka
     ports:
       - 9000:9000
     environment:
@@ -67,11 +69,14 @@ services:
   clickhouse:
     image: docker.io/bitnami/clickhouse:25
     environment:
-      - ALLOW_EMPTY_PASSWORD=yes
+      - ALLOW_EMPTY_PASSWORD=no
+      - CLICKHOUSE_ADMIN_USER=admin
+      - CLICKHOUSE_ADMIN_PASSWORD=admin
     ports:
       - '8123:8123'
+      - '9999:9000'
     volumes:
-      - clickhouse_data:/bitnami/clickhouse
+      - clickhouse_db:/bitnami/clickhouse
   # payment:
   #   image: payment:latest
   #   network_mode: host
@@ -117,4 +122,4 @@ services:
 volumes:
   db_data:
   db_data2:
-  clickhouse_data:
+  clickhouse_db:

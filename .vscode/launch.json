@@ -17,6 +17,13 @@
       "request": "launch",
       "mode": "debug",
       "program": "${workspaceFolder}/payment/main.go",
+    },
+    {
+      "name": "Go reporting !",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/reporting/main.go",
     }
   ]
 }
