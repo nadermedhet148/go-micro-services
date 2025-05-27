@@ -28,6 +28,23 @@ var (
 	verbose = false
 )
 
+// -- `default`.payment_events definition
+
+// CREATE TABLE default.payment_events
+// (
+
+//     `wallet_id` Int32,
+
+//     `amount` Float64,
+
+//     `status` String,
+
+//     `type` String
+// )
+// ENGINE = MergeTree
+// ORDER BY wallet_id
+// SETTINGS index_granularity = 8192;
+
 type PaymentEvent struct {
 	WALLET_ID int     `json:"wallet_id"`
 	AMOUNT    float64 `json:"amount"`

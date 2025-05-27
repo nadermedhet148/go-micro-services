@@ -7,5 +7,7 @@ import (
 
 func main() {
 
-	consumers.RunGroup()
+	go consumers.RunGroup()
+	go consumers.RunStream()
+	select {} // wait forever
 }
