@@ -2,11 +2,16 @@ import http from 'k6/http'
 
 export let options = {
   vus: 10,
-  iterations: 100,
+  iterations: 1000,
 };
 
 export default function () {
-  const regions = ["EG", "US", "EU", "AS", "AF"];
+  const regions = [
+    "Egypt", "United States", "European Union", "Asia", "Africa",
+    "Australia", "South America", "Canada", "India", "Russia",
+    "China", "Brazil", "Mexico", "Japan", "South Korea",
+    "South Africa", "Turkey", "France", "Germany", "Italy"
+  ];
   const randomRegion = regions[Math.floor(Math.random() * regions.length)];
 
   // var createWallet = http.post("http://localhost:8070/api/v1/wallets", JSON.stringify({
@@ -15,8 +20,8 @@ export default function () {
   //   region: randomRegion
   // }));
 
-    var rechargeWallet = http.post("http://localhost:8070/api/v1/wallets/recharge", JSON.stringify({
-    wallet_id: 1,
+  var rechargeWallet = http.post("http://localhost:8070/api/v1/wallets/recharge", JSON.stringify({
+    wallet_id: 305,
     amount: 1000,
   }))
 }

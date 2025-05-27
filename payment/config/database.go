@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"crypto/sha256"
-	"encoding/binary"
+	"hash/fnv"
 
 	_ "github.com/joho/godotenv/autoload"
 	"gorm.io/driver/mysql"
@@ -23,15 +22,18 @@ type Database struct {
 var database = Database{}
 
 const (
-	VirtualBuckets = 100
+	VirtualBuckets = 10
 )
 
 var dbMap = map[int]*gorm.DB{}
 
 // HashKeyToBucket hashes a key to a virtual bucket [0,99]
 func HashKeyToBucket(key string) int {
-	hash := sha256.Sum256([]byte(key))
-	return int(binary.BigEndian.Uint32(hash[:4])) % VirtualBuckets
+
+	h := fnv.New32a()
+	h.Write([]byte(key))
+	val := h.Sum32()
+	return int(val % VirtualBuckets)
 }
 
 // GetDBForKey returns the DB connection for a given key

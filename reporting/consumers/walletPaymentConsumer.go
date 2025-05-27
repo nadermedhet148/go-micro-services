@@ -14,8 +14,8 @@ import (
 	"github.com/tryfix/log"
 )
 
-const TopicTextLines = `payment-events`
-const TopicWordCount = `wallet-payments-count`
+const paymentEventsT = `payment-events`
+const walletPaymentsCountT = `wallet-payments-count`
 
 func RunStream() {
 	flag.Parse()
@@ -56,7 +56,7 @@ func RunStream() {
 }
 
 func buildTopology(logger log.Logger, builder *streams.StreamBuilder) {
-	stream := builder.KStream(TopicTextLines, encoding.StringEncoder{}, encoding.StringEncoder{})
+	stream := builder.KStream(paymentEventsT, encoding.StringEncoder{}, encoding.StringEncoder{})
 	stream.Each(func(ctx context.Context, key, value any) {
 		logger.Debug(`Processing event: ` + value.(string))
 	}).SelectKey(func(ctx context.Context, key, value any) (kOut any, err error) {
@@ -67,7 +67,7 @@ func buildTopology(logger log.Logger, builder *streams.StreamBuilder) {
 		}
 		// Return the wallet ID as the key for grouping
 		return fmt.Sprintf("%v", evt.WALLET_ID), nil
-	}).Aggregate(TopicWordCount,
+	}).Repartition(walletPaymentsCountT+"re").Aggregate(walletPaymentsCountT,
 		func(ctx context.Context, key, value, previous any) (newAgg any, err error) {
 			var count int
 			if previous != nil {
@@ -78,5 +78,5 @@ func buildTopology(logger log.Logger, builder *streams.StreamBuilder) {
 			return
 		}, streams.AggregateWithValEncoder(encoding.IntEncoder{})).ToStream().Each(func(ctx context.Context, key, value any) {
 		println(fmt.Sprintf(`WalletID %s: %d payments`, key, value))
-	}).To(TopicWordCount)
+	}).To(walletPaymentsCountT)
 }

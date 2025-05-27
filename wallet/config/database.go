@@ -4,9 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"crypto/sha256"
-	"encoding/binary"
-
 	_ "github.com/joho/godotenv/autoload"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/sqlite"
@@ -26,12 +23,17 @@ const (
 	VirtualBuckets = 100
 )
 
-var dbMap = map[int]*gorm.DB{}
-
 // HashKeyToBucket hashes a key to a virtual bucket [0,99]
 func HashKeyToBucket(key string) int {
-	hash := sha256.Sum256([]byte(key))
-	return int(binary.BigEndian.Uint32(hash[:4])) % VirtualBuckets
+	// Use a simple hash function (FNV-1a) for better distribution
+	const prime32 = 16777619
+	var hash uint32 = 2166136261
+
+	for i := 0; i < len(key); i++ {
+		hash ^= uint32(key[i])
+		hash *= prime32
+	}
+	return int(hash % VirtualBuckets)
 }
 
 // GetDBForKey returns the DB connection for a given key
