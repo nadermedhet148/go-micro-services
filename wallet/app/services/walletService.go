@@ -14,13 +14,13 @@ import (
 var (
 	RechargeWalletCounter = prometheus.NewCounter(
 		prometheus.CounterOpts{
-			Name: "transaction_ops_processed_total",
+			Name: "recharge_wallet_total",
 			Help: "The total number of processed transactions",
 		},
 	)
 	RechargeWalletDuration = prometheus.NewHistogram(
 		prometheus.HistogramOpts{
-			Name:    "transaction_duration_seconds",
+			Name:    "recharge_wallet_duration_seconds",
 			Help:    "Duration of transaction processing in seconds",
 			Buckets: prometheus.DefBuckets,
 		},
