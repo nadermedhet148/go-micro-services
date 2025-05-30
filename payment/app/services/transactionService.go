@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"time"
 
 	"encoding/json"
 
@@ -10,7 +11,43 @@ import (
 	repositories "github.com/coroo/go-starter/app/repositories"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
+	"github.com/prometheus/client_golang/prometheus"
 )
+
+var (
+	opsProcessed = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Name: "transaction_ops_processed_total",
+			Help: "The total number of processed transactions",
+		},
+	)
+	transactionDuration = prometheus.NewHistogram(
+		prometheus.HistogramOpts{
+			Name:    "transaction_duration_seconds",
+			Help:    "Duration of transaction processing in seconds",
+			Buckets: prometheus.DefBuckets,
+		},
+	)
+	updateProcessed = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Name: "transaction_update_processed_total",
+			Help: "The total number of processed transaction updates",
+		})
+	transactionUpdateDuration = prometheus.NewHistogram(
+		prometheus.HistogramOpts{
+			Name:    "transaction_update_duration_seconds",
+			Help:    "Duration of transaction update processing in seconds",
+			Buckets: prometheus.DefBuckets,
+		},
+	)
+)
+
+func init() {
+	prometheus.MustRegister(opsProcessed)
+	prometheus.MustRegister(transactionDuration)
+	prometheus.MustRegister(updateProcessed)
+	prometheus.MustRegister(transactionUpdateDuration)
+}
 
 type TransactionService interface {
 	CerateRechargeTransaction(Transaction entity.WalletRechargeRequest) (int, error)
@@ -35,6 +72,14 @@ func NewTransactionService(repository repositories.TransactionRepository, paymen
 }
 
 func (service *transactionService) CerateRechargeTransaction(req entity.WalletRechargeRequest) (int, error) {
+
+	start := time.Now()
+	defer func() {
+		opsProcessed.Inc()
+		duration := time.Since(start).Seconds()
+		transactionDuration.Observe(duration)
+
+	}()
 
 	Transaction := entity.Transaction{
 		WALLET_ID:  req.WALLET_ID,
@@ -62,7 +107,15 @@ func (service *transactionService) CerateRechargeTransaction(req entity.WalletRe
 	service.paymentEventProducer.PushToTopicWithPartition(eventBytes)
 	return id, nil
 }
+
 func (service *transactionService) UpdateTransaction(req entity.TransactionUpdateRequest) error {
+	start := time.Now()
+	defer func() {
+		updateProcessed.Inc()
+		duration := time.Since(start).Seconds()
+		transactionUpdateDuration.Observe(duration)
+	}()
+
 	Transaction := service.repositories.GetByRefNumber(req.REGION, req.REF_NUMBER)
 	if Transaction.ID == 0 {
 		return errors.New("transaction not found")
@@ -88,5 +141,4 @@ func (service *transactionService) UpdateTransaction(req entity.TransactionUpdat
 	service.paymentEventProducer.PushToTopicWithPartition(eventBytes)
 
 	return nil
-
 }

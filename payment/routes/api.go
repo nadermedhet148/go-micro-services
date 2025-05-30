@@ -29,4 +29,5 @@ func Api() {
 	deliveries.NewTransactionsController(router, API_PREFIX, transactionService)
 
 	router.Run(":" + os.Getenv("MAIN_PORT"))
+
 }

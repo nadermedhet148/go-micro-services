@@ -2,12 +2,35 @@ package services
 
 import (
 	"errors"
+	"time"
 
 	entity "github.com/coroo/go-starter/app/entity"
 	"github.com/coroo/go-starter/app/rabbitmq"
 	repositories "github.com/coroo/go-starter/app/repositories"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/prometheus/client_golang/prometheus"
 )
+
+var (
+	RechargeWalletCounter = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Name: "transaction_ops_processed_total",
+			Help: "The total number of processed transactions",
+		},
+	)
+	RechargeWalletDuration = prometheus.NewHistogram(
+		prometheus.HistogramOpts{
+			Name:    "transaction_duration_seconds",
+			Help:    "Duration of transaction processing in seconds",
+			Buckets: prometheus.DefBuckets,
+		},
+	)
+)
+
+func init() {
+	prometheus.MustRegister(RechargeWalletCounter)
+	prometheus.MustRegister(RechargeWalletDuration)
+}
 
 type WalletService interface {
 	CerateWallet(wallet entity.Wallet) (int, error)
@@ -34,6 +57,14 @@ func (service *walletService) CerateWallet(wallet entity.Wallet) (int, error) {
 	return id, nil
 }
 func (service *walletService) RechargeWallet(req entity.WalletRechargeRequest) error {
+	start := time.Now()
+	defer func() {
+		RechargeWalletCounter.Inc()
+		duration := time.Since(start).Seconds()
+		RechargeWalletDuration.Observe(duration)
+
+	}()
+
 	wallet := service.repositories.Get(req.Region, req.WALLET_ID)
 	if wallet.ID == 0 {
 		return errors.New("wallet not found")
