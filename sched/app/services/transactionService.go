@@ -1,25 +1,23 @@
 package services
 
 import (
-	"errors"
 	"time"
 
-	"encoding/json"
-
 	entity "github.com/coroo/go-starter/app/entity"
+	"github.com/coroo/go-starter/app/rabbitmq"
 	"github.com/coroo/go-starter/app/repositories"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
 var (
-	opsProcessed = prometheus.NewCounter(
+	transactionsProcessed = prometheus.NewCounter(
 		prometheus.CounterOpts{
 			Name: "transaction_ops_processed_total",
 			Help: "The total number of processed transactions",
 		},
 	)
-	transactionDuration = prometheus.NewHistogram(
+	opsDuration = prometheus.NewHistogram(
 		prometheus.HistogramOpts{
 			Name:    "transaction_duration_seconds",
 			Help:    "Duration of transaction processing in seconds",
@@ -29,60 +27,45 @@ var (
 )
 
 func init() {
-	prometheus.MustRegister(opsProcessed)
-	prometheus.MustRegister(transactionDuration)
+	prometheus.MustRegister(transactionsProcessed)
+	prometheus.MustRegister(opsDuration)
 }
 
 type TransactionService interface {
-	UpdateTransaction(Transaction entity.TransactionUpdateRequest) error
+	RunExpiredTransactionCleanup() error
 }
 
 type transactionService struct {
-	repositories repositories.TransactionRepository
+	repositories    repositories.TransactionRepository
+	paymentProducer rabbitmq.PaymentProducer
 }
 
-const (
-	DEBIT  = "debit"
-	CREDIT = "credit"
-)
-
-func NewTransactionService(repository repositories.TransactionRepository, paymentEventProducer kafka.PaymentEventProducer) TransactionService {
+func NewTransactionService(repository repositories.TransactionRepository, paymentProducer rabbitmq.PaymentProducer) TransactionService {
 	return &transactionService{
-		repositories: repository,
+		repositories:    repository,
+		paymentProducer: paymentProducer,
 	}
 }
 
-func (service *transactionService) UpdateTransaction(req entity.TransactionUpdateRequest) error {
+func (service *transactionService) RunExpiredTransactionCleanup() error {
 	start := time.Now()
 	defer func() {
-		updateProcessed.Inc()
 		duration := time.Since(start).Seconds()
-		transactionUpdateDuration.Observe(duration)
+		opsDuration.Observe(duration)
+
 	}()
 
-	Transaction := service.repositories.GetByRefNumber(req.REGION, req.REF_NUMBER)
-	if Transaction.ID == 0 {
-		return errors.New("transaction not found")
-	}
-	if Transaction.STATUS != "pending" {
-		return errors.New("transaction already completed")
-	}
-	Transaction.STATUS = req.STATUS
-	err := service.repositories.Update(req.REGION, Transaction)
-	if err != nil {
-		return err
-	}
-	event := kafka.PaymentEvent{
-		WALLET_ID: Transaction.WALLET_ID,
-		AMOUNT:    Transaction.AMOUNT,
-		STATUS:    Transaction.STATUS,
-		TYPE:      Transaction.TYPE,
-	}
-	eventBytes, err := json.Marshal(event)
-	if err != nil {
-		return err
-	}
-	service.paymentEventProducer.PushToTopicWithPartition(eventBytes)
+	for bucket := 0; bucket < 10; bucket++ {
+		pendingTrxs := service.repositories.GePendingTrxs(bucket)
 
+		for _, trx := range pendingTrxs {
+			transactionsProcessed.Inc()
+			service.paymentProducer.PublishPayment(entity.TransactionUpdateRequest{
+				REF_NUMBER: trx.REF_NUMBER,
+				STATUS:     "expired",
+				REGION:     trx.REGION,
+			})
+		}
+	}
 	return nil
 }

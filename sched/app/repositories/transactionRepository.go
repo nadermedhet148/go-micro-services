@@ -11,7 +11,7 @@ import (
 )
 
 type TransactionRepository interface {
-	GePendingTrx() entity.Transaction
+	GePendingTrxs(bucket int) []entity.Transaction
 }
 
 type TransactionDatabase struct {
@@ -21,25 +21,22 @@ func NewTransactionRepository() TransactionRepository {
 	return &TransactionDatabase{}
 }
 
-func getDBConnection(key string) *gorm.DB {
-	db, err := config.GetDBForKey(key)
+func getDBConnection(bucket int) *gorm.DB {
+	db, err := config.GetDBForKey(bucket)
 	if err != nil {
 		panic("Failed to connect database")
 	}
 	db.AutoMigrate(&entity.Transaction{})
 	return db
 }
-func (db *TransactionDatabase) GePendingTrx() entity.Transaction {
-	conn := getDBConnection("transaction")
+func (db *TransactionDatabase) GePendingTrxs(bucket int) []entity.Transaction {
+	conn := getDBConnection(bucket)
 
-	var transaction entity.Transaction
-	result := conn.Where("status = ? AND created_at >= ?", "pending", time.Now().Add(-10*time.Minute)).First(&transaction)
+	var transactions []entity.Transaction
+	result := conn.Where("status = ? AND created_at >= ?", "pending", time.Now().Add(-10*time.Minute)).Find(&transactions)
 	if result.Error != nil {
-		return entity.Transaction{}
+		return []entity.Transaction{}
 	}
 
-	transaction.UpdatedAt = time.Now()
-	conn.Save(&transaction)
-
-	return transaction
+	return transactions
 }
