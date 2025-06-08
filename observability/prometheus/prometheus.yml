@@ -7,3 +7,6 @@ scrape_configs:
   - job_name: 'wallet-service'
     static_configs:
       - targets: ['localhost:2111']
+  - job_name: 'sched-service'
+    static_configs:
+      - targets: ['localhost:2114']

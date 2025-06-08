@@ -24,6 +24,20 @@
       "request": "launch",
       "mode": "debug",
       "program": "${workspaceFolder}/reporting/main.go",
+    },
+    {
+      "name": "Go sched !",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/sched/main.go",
+    },
+    {
+      "name": "Go user !",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/user/main.go",
     }
   ]
 }
